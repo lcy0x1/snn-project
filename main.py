@@ -173,7 +173,7 @@ for epoch in epochs:
         optimizer.zero_grad()
         loss_val.backward()
         optimizer.step()
-        epochs.set_description(f"Step: {epoch} | loss: {loss_val}")
+        epochs.set_description(f"Step: {epoch} | Image: {i}/{len(train_loader)} | loss: {loss_val}")
 
     t2 = dt.datetime.now()
     a1 = test_accuracy(train_loader, net, num_steps)
