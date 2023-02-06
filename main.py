@@ -11,6 +11,7 @@ from snntorch import surrogate
 from snntorch import utils
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+from tqdm import trange
 
 # Inputs are latency coded spike streams
 # Looking at the effect of different parameters (# of hidden nodes, # of time-steps, tolerance, leak vs. no leak, ramp neurons with and without leak)
@@ -152,10 +153,12 @@ acc_hist = []
 train_acc = []
 test_acc = []
 
-for epoch in range(num_epochs):
+epochs = trange(num_epochs)
+
+for epoch in epochs:
     t1 = dt.datetime.now()
     for i, (data, targets) in enumerate(iter(train_loader)):
-        print(epoch, i)
+
         spike_data = spikegen.latency(data, num_steps=num_steps, tau=5, threshold=0.01, clip=True, normalize=True,
                                       linear=True)
         data = spike_data.to(device)
@@ -170,6 +173,7 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
         loss_val.backward()
         optimizer.step()
+        epochs.set_description(f"Step: {epoch} | loss: {loss_val}")
 
     t2 = dt.datetime.now()
     a1 = test_accuracy(train_loader, net, num_steps)
