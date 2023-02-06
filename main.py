@@ -155,7 +155,7 @@ test_acc = []
 for epoch in range(num_epochs):
     t1 = dt.datetime.now()
     for i, (data, targets) in enumerate(iter(train_loader)):
-        # print(epoch,i)
+        print(epoch, i)
         spike_data = spikegen.latency(data, num_steps=num_steps, tau=5, threshold=0.01, clip=True, normalize=True,
                                       linear=True)
         data = spike_data.to(device)
