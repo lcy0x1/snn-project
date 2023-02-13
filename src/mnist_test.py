@@ -6,7 +6,7 @@ from snntorch import utils
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-from env.trainer import Trainer, OptmParams
+from trainers.trainer import Trainer, OptmParams
 from mnist_test.net import Net
 
 # Inputs are latency coded spike streams
@@ -31,6 +31,9 @@ mnist_test = datasets.MNIST(data_path, train=False, download=True, transform=tra
 
 mnist_train = utils.data_subset(mnist_train, subset)
 mnist_test = utils.data_subset(mnist_test, subset)
+
+print("Training Set Size:", len(mnist_train))
+print("Testing Set Size:", len(mnist_test))
 
 # Create DataLoaders
 train_loader = DataLoader(mnist_train, batch_size=batch_size_train, shuffle=False, drop_last=True)
