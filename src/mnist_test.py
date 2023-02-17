@@ -47,9 +47,10 @@ def spike_transform(t, data):
 
 optm_param = OptmParams(grad=surrogate.fast_sigmoid(), num_steps=10, lr=7e-4, beta_lo=1 - 1e-1, beta_hi=1 - 1e-3)
 net = Net(optm_param, beta=1.0, num_inputs=28 * 28, num_hidden=300, num_outputs=10)
+# loss_fn = SF.mse_count_loss(correct_rate=0.8, incorrect_rate=0.2)s
 loss_fn = SF.mse_temporal_loss(on_target=0, off_target=optm_param.num_steps, tolerance=0)
 trainer = Trainer(net, optm_param, loss_fn, spike_transform)
-trainer.train(30, train_loader, test_loader)
+trainer.train(30, train_loader, test_loader).plot()
 
 
 def conv_seq_to_first_spike_time(tr, spk_rec):

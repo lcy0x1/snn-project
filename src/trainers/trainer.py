@@ -19,6 +19,21 @@ class OptmParams:
         return torch.optim.Adam(net.parameters(), lr=self.lr, betas=self.betas)
 
 
+class TrainResult:
+
+    def __init__(self, train_acc, test_acc):
+        self.train_acc = train_acc
+        self.test_acc = test_acc
+
+    def plot(self):
+        plt.plot(self.train_acc, label='Training Set', marker='o')
+        plt.plot(self.test_acc, label='Test Set', marker='o')
+        plt.xlabel('Epoch #')
+        plt.ylabel('Accuracy')
+        plt.legend()
+        plt.show()
+
+
 class Trainer:
 
     def __init__(self, net, optm: OptmParams, loss, transformer):
@@ -28,7 +43,6 @@ class Trainer:
         self.optm = optm
         self.net = net.to(self.device)
         self.optimizer = self.optm.get_optm(self.net)
-        # loss_fn = SF.mse_count_loss(correct_rate=0.8, incorrect_rate=0.2)
         self.loss_fn = loss
         self.num_steps = optm.num_steps
         self.transformer = transformer
@@ -50,11 +64,6 @@ class Trainer:
         return acc / total
 
     def train(self, num_epochs, train_loader, test_loader):
-        loss_hist = []
-        acc_hist = []
-        # self.net.init_L1_weights()
-        # self.net.init_L2_weights()
-
         # training loop
         train_acc = []
         test_acc = []
@@ -86,15 +95,6 @@ class Trainer:
             print("Time to run one epoch: " + str(t2 - t1))
             print("Time to compute accuracies: " + str(t3 - t2))
 
-        # print(self.net.lif1.beta)
-        # print(self.net.lif2.beta)
-
         print(train_acc)
         print(test_acc)
-
-        plt.plot(train_acc, label='Training Set', marker='o')
-        plt.plot(test_acc, label='Test Set', marker='o')
-        plt.xlabel('Epoch #')
-        plt.ylabel('Accuracy')
-        plt.legend()
-        plt.show()
+        return TrainResult(train_acc, test_acc)
