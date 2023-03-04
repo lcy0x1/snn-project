@@ -15,7 +15,7 @@ from mnist_test.net import Net
 # dataloader arguments
 batch_size_train = 100
 batch_size_test = 100
-data_path = '/home/prashansa/SNNTorch/Datasets/'
+data_path = './Datasets/'
 num_classes = 10  # MNIST has 10 output classes
 subset = 1  # Reduce training set of 60,000 images to 6000 images
 

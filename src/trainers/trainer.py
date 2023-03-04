@@ -34,6 +34,27 @@ class TrainResult:
         plt.show()
 
 
+class TrainProgress:
+
+    def __init__(self):
+        self.name = ""
+        self.index = 0
+        self.max = 0
+        self.loss = 0
+        self.train_acc = 0
+        self.test_acc = 0
+        self.epochs = None
+
+    def display(self):
+        self.epochs.set_description(f"{self.name}{self.index + 1}/{self.max} | loss: {self.loss:.3e} | "
+                                    f"Training Set Accuracy: {self.train_acc*100:.2f}% | "
+                                    f"Testing Set Accuracy: {self.test_acc*100:.2f}%")
+
+    def set_sub_process(self, name, size):
+        self.name = name
+        self.max = size
+
+
 class Trainer:
 
     def __init__(self, net, optm: OptmParams, loss, transformer):
@@ -46,6 +67,7 @@ class Trainer:
         self.loss_fn = loss
         self.num_steps = optm.num_steps
         self.transformer = transformer
+        self.progress = TrainProgress()
 
     def test_accuracy(self, data_loader):
         with torch.no_grad():
@@ -53,14 +75,15 @@ class Trainer:
             acc = 0
             self.net.eval()
 
-            data_loader = iter(data_loader)
-            for data, targets in data_loader:
+            for i, (data, targets) in enumerate(iter(data_loader)):
                 spike_data = self.transformer(self, data)
                 data = spike_data.to(self.device)
                 targets = targets.to(self.device)
                 spk_rec, _ = self.net(data)
                 acc += SF.accuracy_temporal(spk_rec, targets) * spk_rec.size(1)
                 total += spk_rec.size(1)
+                self.progress.index = i
+                self.progress.display()
         return acc / total
 
     def train(self, num_epochs, train_loader, test_loader):
@@ -69,9 +92,10 @@ class Trainer:
         test_acc = []
 
         epochs = trange(num_epochs)
+        self.progress.epochs = epochs
 
         for epoch in epochs:
-            t1 = dt.datetime.now()
+            self.progress.set_sub_process(f"Step: {epoch} | Image: ", len(train_loader))
             for i, (data, targets) in enumerate(iter(train_loader)):
                 spike_data = self.transformer(self, data)
                 data = spike_data.to(self.device)
@@ -82,18 +106,19 @@ class Trainer:
                 self.optimizer.zero_grad()
                 loss_val.backward()
                 self.optimizer.step()
-                epochs.set_description(f"Step: {epoch} | Image: {i + 1}/{len(train_loader)} | loss: {loss_val:.3e}")
+                self.progress.index = i
+                self.progress.loss = loss_val
+                self.progress.display()
 
-            t2 = dt.datetime.now()
+            self.progress.set_sub_process(f"Step: {epoch} | Evaluate Training Set: ", len(train_loader))
             a1 = self.test_accuracy(train_loader)
+            self.progress.set_sub_process(f"Step: {epoch} | Evaluate Testing Set: ", len(test_loader))
             a2 = self.test_accuracy(test_loader)
-            t3 = dt.datetime.now()
             train_acc.append(a1)
             test_acc.append(a2)
-            print(f"Training set accuracy: {a1 * 100:.3f}%")
-            print(f"Test set accuracy: {a2 * 100:.3f}%")
-            print("Time to run one epoch: " + str(t2 - t1))
-            print("Time to compute accuracies: " + str(t3 - t2))
+            self.progress.train_acc = a1
+            self.progress.test_acc = a2
+            self.progress.display()
 
         print(train_acc)
         print(test_acc)
